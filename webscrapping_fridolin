@@ -1,0 +1,91 @@
+import requests
+import pandas as pd
+import time
+
+def fetch_historical_data(symbol='bitcoin', days=5000):
+    url = f'https://api.coingecko.com/api/v3/coins/{symbol}/market_chart'
+    params = {
+        'vs_currency': 'usd',
+        'days': days,
+    }
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        if response.status_code == 429:  # Rate limit error
+            print(f"Rate limit exceeded for {symbol}. Retrying after a delay...")
+            time.sleep(60)  # Wait longer before retrying
+            return fetch_historical_data(symbol, days)  # Retry the same request
+        print(f"Error fetching data for {symbol}: {response.status_code} - {response.text}")
+        return pd.DataFrame()
+
+    data = response.json()
+
+    # Create DataFrame from prices and volumes
+    prices = data['prices']
+    volume = data['total_volumes']
+
+    df_prices = pd.DataFrame(prices, columns=['Open Time', 'Price'])
+    df_volume = pd.DataFrame(volume, columns=['Open Time', 'Total Volume'])
+
+    # Convert timestamps to correct format dates
+    df_prices['Open Time'] = pd.to_datetime(df_prices['Open Time'], unit='ms')
+    df_volume['Open Time'] = pd.to_datetime(df_volume['Open Time'], unit='ms')
+
+    # Merge DataFrames
+    df = pd.merge(df_prices, df_volume, on='Open Time')
+
+    # Calculate Open, High, Low, Change %
+    df['Open'] = df['Price'].shift(1)  # Previous price as Open
+    df['High'] = df['Price'].rolling(window=2).max()  # High over the last two periods
+    df['Low'] = df['Price'].rolling(window=2).min()  # Low over the last two periods
+
+    # Change % calculation
+    df['Change %'] = ((df['Price'] - df['Open']) / df['Open']) * 100
+
+    # Keep only relevant columns
+    df = df[['Open Time', 'Open', 'High', 'Low', 'Price', 'Total Volume', 'Change %']]
+
+    # Rename 'Open Time' to 'Date'
+    df.rename(columns={'Open Time': 'Date'}, inplace=True)
+
+    # Add a column for the cryptocurrency name
+    df['Crypto Name'] = symbol
+
+    # Format Date to show both date and time
+    df['Date'] = df['Date'].dt.strftime('%d-%m-%Y %H:%M:%S')
+
+    return df
+
+# Set the cryptocurrency you want to fetch data for
+crypto = 'ripple'
+total_days = 5000
+days_per_request = 60
+
+# Initialize an empty DataFrame to combine data
+combined_data = pd.DataFrame()
+
+# Fetch data in chunks for the specified cryptocurrency
+print(f'Fetching data for {crypto}')
+for i in range(total_days // days_per_request + 1):
+    days_to_fetch = min(days_per_request, total_days - i * days_per_request)
+    if days_to_fetch <= 0:
+        break
+
+    print(f'Fetching the last {days_to_fetch} days of data...')
+    crypto_data = fetch_historical_data(symbol=crypto, days=days_to_fetch)
+
+    if not crypto_data.empty:
+        combined_data = pd.concat([combined_data, crypto_data], ignore_index=True)
+        print(f'Data for {days_to_fetch} days added to the combined dataset.')
+
+        # Save to CSV while retaining time information
+        combined_data.to_csv('combined_crypto_historical_data.csv', index=False)
+    else:
+        print(f'No data found for {crypto}.')
+
+    time.sleep(30)
+
+# Final save to ensure all data is written
+combined_data.to_csv(f'combined_crypto_historical_data_{crypto}.csv', index=False)
+
+print(f'Combined data saved to combined_crypto_historical_data_{crypto}.csv')
