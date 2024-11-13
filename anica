@@ -1,0 +1,43 @@
+import pandas as pd
+
+# Load the two CSV files
+file1 = "/content/BTC-2017min.csv"
+file2 = "/content/BTC-2018min.csv"
+file3 = "/content/BTC-2019min.csv"
+file4 = "/content/BTC-2020min.csv"
+file5 = "/content/BTC-2021min.csv"
+file6 = "/content/BTC-Daily.csv"
+file7 = "/content/BTC-Hourly.csv"
+file8 = "/content/bitcoin_crypto_historical_data.csv"
+# file9 = "/content/cardano_data_reordered_updated (2).csv"
+# file10 = "/content/cardano_data_reordered_with_date.csv"
+# Read the CSV files into dataframes and standardize the column names
+df1 = pd.read_csv(file1)
+df2 = pd.read_csv(file2)
+df3 = pd.read_csv(file3)
+df4 = pd.read_csv(file4)
+df5 = pd.read_csv(file5)
+df6 = pd.read_csv(file6)
+df7 = pd.read_csv(file7)
+df8 = pd.read_csv(file8)
+# df9 = pd.read_csv(file9)
+# df10 = pd.rea# Standardize the column headers by stripping whitespace and converting to lowercase
+df1.columns = df1.columns.str.strip().str.lower()
+df2.columns = df2.columns.str.strip().str.lower()
+df3.columns = df3.columns.str.strip().str.lower()
+df4.columns = df4.columns.str.strip().str.lower()
+df5.columns = df5.columns.str.strip().str.lower()
+df6.columns = df6.columns.str.strip().str.lower()
+df7.columns = df7.columns.str.strip().str.lower()
+df8.columns = df8.columns.str.strip().str.lower()
+# df9.columns = df9.columns.str.strip().str.lower()
+# df10.columns = df10.columns.str.strip().str.lower()
+
+# Concatenate the dataframes
+merged_df = pd.concat([df1, df2,df3,df4,df5,df6,df7,df8], ignore_index=True)
+
+# Save the merged data to a new CSV file
+merged_file ="bitcoin_new.csv"
+merged_df.to_csv(merged_file, index=False)
+
+print(f"Merged file saved as {merged_file}")
