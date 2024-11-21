@@ -1,0 +1,143 @@
+# Step 1: Import necessary libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+# Step 2: Upload the file in Google Colab
+from google.colab import files
+
+# This will prompt you to upload the file
+uploaded = files.upload()
+
+# Step 3: Load the dataset
+file_path = next(iter(uploaded))  # automatically get the uploaded file path
+df = pd.read_csv(file_path)
+
+# Check basic information
+print(f"Dataset Shape: {df.shape}")
+print(f"Data Types:\n{df.dtypes}")
+print(f"File size: {os.path.getsize(file_path) / (1024 * 1024):.2f} MB")
+
+# Display the first few rows
+print(df.head())
+
+# Step 4: Convert 'date' column to datetime format and set as index if necessary
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+df.set_index('date', inplace=True)
+
+# Check for missing values and duplicates
+print(f"Missing values:\n{df.isnull().sum()}")
+duplicates = df.duplicated()
+print(f"Number of duplicate rows: {duplicates.sum()}")
+
+# Drop duplicates if necessary
+df = df.drop_duplicates()
+# Step 5: Plot high prices over time
+plt.figure(figsize=(12, 6))
+plt.plot(df['high'], label='High Price', color='red', alpha=0.6)
+plt.title("Cardano High Price Over Time")
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Plot low prices over time
+plt.figure(figsize=(12, 6))
+plt.plot(df['low'], label='Low Price', color='blue', alpha=0.6)
+plt.title("Cardano Low Price Over Time")
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Step 6: Plot distributions of key columns
+df[['close', 'high', 'low', 'open', 'volume']].hist(bins=20, figsize=(12, 8))
+plt.suptitle("Distribution of Key Columns")
+plt.show()
+# Step 7: Calculate and display basic statistics
+print(f"Summary Statistics:\n{df.describe()}")
+
+# Step 8: Pearson correlation heatmap
+numeric_df = df.select_dtypes(include=['float64', 'int64'])
+plt.figure(figsize=(12, 8))
+sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+plt.title("Pearson Correlation Matrix")
+plt.show()
+
+# Step 9: Spearman correlation heatmap
+plt.figure(figsize=(12, 8))
+sns.heatmap(numeric_df.corr(method='spearman'), annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+plt.title("Spearman Correlation Matrix")
+plt.show()
+
+# Step 10: Boxplots for detecting outliers in price columns
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df[['close', 'high', 'low', 'open']], palette='coolwarm')
+plt.title("Boxplot of Stock Prices")
+plt.show()
+
+# Step 11: Resample to daily and calculate daily high, low, and volume
+df_daily = df.resample('D').agg({'high': 'max', 'low': 'min', 'volume': 'sum'})
+plt.figure(figsize=(12, 6))
+plt.plot(df_daily['high'], label='Daily High Price', color='red')
+plt.plot(df_daily['low'], label='Daily Low Price', color='blue')
+plt.title("Daily High and Low Prices")
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Step 12: Calculate weekly averages and plot
+weekly_avg_high = df['high'].resample('W').mean()
+weekly_avg_low = df['low'].resample('W').mean()
+plt.figure(figsize=(12, 6))
+plt.plot(weekly_avg_high, label='Weekly Avg High', color='green')
+plt.plot(weekly_avg_low, label='Weekly Avg Low', color='orange')
+plt.title("Weekly Average High and Low Prices")
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Step 13: Plot volume over time
+plt.figure(figsize=(12, 6))
+plt.plot(df['volume'], label='Volume', color='purple')
+plt.title("Cardano Trading Volume Over Time")
+plt.xlabel('Date')
+plt.ylabel('Volume')
+plt.legend()
+plt.show()
+
+# Plot High Price over time for each currency
+plt.figure(figsize=(14, 6))
+plt.plot(cardano_data['date'], cardano_data['high'], label='Cardano', color='blue')
+plt.plot(ripple_data['date'], ripple_data['high'], label='Ripple', color='orange')
+plt.plot(bitcoin_data['date'], bitcoin_data['high'], label='Bitcoin', color='green')
+plt.title("High Prices Over Time")
+plt.xlabel("Date")
+plt.ylabel("High Price")
+plt.legend()
+plt.show()
+
+# Plot Volume over time for each currency
+plt.figure(figsize=(14, 6))
+plt.plot(cardano_data['date'], cardano_data['volume'], label='Cardano', color='blue', alpha=0.6)
+plt.plot(ripple_data['date'], ripple_data['volume'], label='Ripple', color='orange', alpha=0.6)
+plt.plot(bitcoin_data['date'], bitcoin_data['volume'], label='Bitcoin', color='green', alpha=0.6)
+plt.title("Volume Over Time")
+plt.xlabel("Date")
+plt.ylabel("Volume")
+plt.legend()
+plt.show()
+
+# Plot Close Price distribution for each currency
+plt.figure(figsize=(14, 6))
+df[df['currency name'] == 'cardano']['close'].hist(bins=20, alpha=0.5, label='Cardano', color='blue')
+df[df['currency name'] == 'ripple']['close'].hist(bins=20, alpha=0.5, label='Ripple', color='orange')
+df[df['currency name'] == 'bitcoin']['close'].hist(bins=20, alpha=0.5, label='Bitcoin', color='green')
+plt.title("Distribution of Close Prices")
+plt.xlabel("Close Price")
+plt.ylabel("Frequency")
+plt.legend()
+plt.show()
