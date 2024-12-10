@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptocurrency Price Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Cryptocurrency Price Prediction</h1>
+        <form id="predictionForm">
+            <div class="mb-3">
+                <label for="future_date" class="form-label">Future Date</label>
+                <input type="date" class="form-control" id="future_date" name="future_date" required>
+            </div>
+            <div class="mb-3">
+                <label for="currency_name" class="form-label">Cryptocurrency</label>
+                <select class="form-select" id="currency_name" name="currency_name" required>
+                    <option value="cardano">Cardano</option>
+                    <option value="ripple">Ripple</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Predict</button>
+        </form>
+        <div class="mt-4" id="predictionResult"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            const resultDiv = document.getElementById('predictionResult');
+            if (result.status === 'success') {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <p><strong>Future Date:</strong> ${result.future_date}</p>
+                        <p><strong>Cryptocurrency:</strong> ${result.currency_name}</p>
+                        <p><strong>Predicted High:</strong> ${result.predicted_high}</p>
+                        <p><strong>Predicted Low:</strong> ${result.predicted_low}</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
