@@ -1,0 +1,73 @@
+#first
+import pandas as pd
+
+# Load the CSV file into a DataFrame
+df = pd.read_csv("/content/cardano_data_reordered_updated (2).csv")
+
+# Define the columns to keep
+columns_to_keep = ["Open time" , "Open", "High", "Low", "Close", "Volume", "currency"]
+
+# Check for missing columns and create them if necessary
+for column in columns_to_keep:
+    if column not in df.columns:
+        # If 'currency' is missing, create it as a new column with 'Cardona' as default
+        df[column] = "Cardona" if column == "currency" else None
+
+# Filter to keep only the specified columns
+df = df[columns_to_keep]
+
+# Replace empty or non-"Cardona" entries in "currency" with "Cardona"
+df["currency"] = df["currency"].apply(lambda x: "Cardona" if pd.isna(x) or x != "Cardona" else x)
+
+# Save the modified DataFrame back to a CSV file
+df.to_csv("edited_file10.csv", index=False)
+
+print("File edited and saved as 'edited_file.csv'")
+
+
+
+#second
+
+import pandas as pd
+
+# Load the two CSV files
+file1 = "/content/edited_file.csv"
+file2 = "/content/merged_ripbit2.csv"
+
+
+df1 = pd.read_csv(file1)
+df2 = pd.read_csv(file2)
+
+
+
+# Standardize the column headers by stripping whitespace and converting to lowercase
+df1.columns = df1.columns.str.strip().str.lower()
+df2.columns = df2.columns.str.strip().str.lower()
+
+
+# Concatenate the dataframes
+merged_df = pd.concat([df1, df2], ignore_index=True)
+
+# Save the merged data to a new CSV file
+merged_file = "merged_cardona.csv"
+merged_df.to_csv(merged_file, index=False)
+
+print(f"Merged file saved as {merged_file}")
+
+
+#third
+import pandas as pd
+
+# Load the CSV file into a DataFrame
+df = pd.read_csv("/content/merged_cardona.csv")
+
+# Rename columns
+df = df.rename(columns={"open time": "date", "close": "price", "currency": "currency name"})
+
+# Change all entries in "currency name" to "Cardano"
+df["currency name"] = "Cardano"
+
+# Save the modified DataFrame back to a new CSV file
+df.to_csv("cardano_0.csv", index=False)
+
+print("File edited and saved as 'cardano_0.csv'")
